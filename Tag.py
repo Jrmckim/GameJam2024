@@ -15,7 +15,7 @@ game_over = False
 #Music
 mixer.music.load("10_Second_round.mp3")
 mixer.music.set_volume(0.2)
-mixer.music.play()
+
 
 # colours
 blue = (0, 0, 255)
@@ -84,6 +84,39 @@ def check_y(y,psizey):
 def message (msg,colour,x,y):
     mesg = font.render(msg, True, colour)
     dis.blit(mesg, [x, y])
+
+def home_screen():
+    screen = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Tag - Home Screen")
+
+    font = pygame.font.Font('freesansbold.ttf', 32)
+    white = (255, 255, 255)
+    red = (255, 0, 0)
+    blue = (0, 0, 255)
+
+    text = font.render("Press S to Start or Esc to Exit", True, white)
+    text_rect = text.get_rect(center=(400, 300))
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    running = False
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+
+        screen.fill(black)
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+
+# Run the home screen
+home_screen()
+
+mixer.music.play()
 
 while not game_over:
     # p2speed = 8
