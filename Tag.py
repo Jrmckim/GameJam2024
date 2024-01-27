@@ -327,6 +327,9 @@ while not game_over:
         shrinking = False
         circleActive = True
         p1abilitytimer = 0
+        p1speed = 8.5
+        p2speed = 7
+        p2speed_temp = 7
 #Player 1 Win condition
     if (x1 + p1sizex > x2) and (x1 - p2sizex < x2) and (y1 + p1sizey > y2) and (y1 - p2sizey < y2):
         mixer.music.pause()
@@ -346,6 +349,9 @@ while not game_over:
         ability = False
         shrinking = False
         circleActive = True
+        p1speed = 8.5
+        p2speed_temp = 7
+        p2speed = 7
 
 #Updates player scores
 
