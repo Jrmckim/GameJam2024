@@ -45,6 +45,7 @@ shrinking = False
 p2sizex = 30
 p2sizey = 30
 p2speed = 7
+p2speed_temp = 7
 p2score = 0
 p2jump = 1
 p2ability = 1
@@ -85,8 +86,11 @@ while not game_over:
     keys = pygame.key.get_pressed()
 #Abilities
     if keys[pygame.K_LSHIFT] and p2ability > 0:
+        p2speed_temp = p2speed
         p2speed = 300
         p2ability -= 1
+    else:
+        p2speed = p2speed_temp
     if keys[pygame.K_SPACE] and p1ability > 0:
         ability = True
         p1abilitytimer = 2
@@ -203,6 +207,7 @@ while not game_over:
 
     if p2_speed_boost_timer > 0:
         p2speed *= 2  # Double the speed
+        p2speed_temp *= 2
         p2_speed_boost_timer -= 1/fps
 
     # Update the display
