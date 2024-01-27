@@ -17,6 +17,7 @@ yellow = (255,255,0)
 
 fps = 30
 # starting position and display
+
 disx = 800
 disy = 600
 dis = pygame.display.set_mode((disx, disy))
@@ -50,8 +51,10 @@ p2ability = 1
 x2 = getrandx(p2sizex)
 y2 = getrandy(p2sizey)
 
+circleActive = True
+
 clock = pygame.time.Clock()
-timer = 10
+timer = 20
 font = pygame.font.Font('freesansbold.ttf', 32)
 
 def check_x(x,psizex):
@@ -73,7 +76,7 @@ def message (msg,colour,x,y):
     dis.blit(mesg, [x, y])
 
 while not game_over:
-    p2speed = 8
+    # p2speed = 8
     # Closes window if you press the X button
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -160,8 +163,50 @@ while not game_over:
     message(str(round(timer,1)), white, disx/2, 10)
     message(f"P1 : {p1score}", red, 10, 10)
     message(f"P2 : {p2score}", blue, disx-100, 10)
+    
     pygame.draw.rect(dis, blue, [x2, y2, p2sizex, p2sizey])
     pygame.draw.rect(dis, red, [x1, y1, p1sizex, p1sizey])
+    # Draw Player 1 and Player 2
+    pygame.draw.rect(dis, blue, [x2, y2, p2sizex, p2sizey])
+    pygame.draw.rect(dis, red, [x1, y1, p1sizex, p1sizey])
+
+    # Define circle properties
+    circle_radius = 20
+    circle_x = disx // 2
+    circle_y = disy // 2
+    circle_color = yellow  # Define green color at the top of your script
+
+    # Speed boost properties
+    speed_boost_duration = 5  # 5 seconds
+    p1_speed_boost_timer = 0
+    p2_speed_boost_timer = 0
+
+    # Draw the circle at the center of the map
+    if circleActive == True: pygame.draw.circle(dis, circle_color, (circle_x, circle_y), circle_radius)
+
+    # Check if Player 1 reaches the circle
+    if ((x1 - circle_x)**2 + (y1 - circle_y)**2 <= circle_radius**2) and circleActive == True:
+        circleActive = False
+        print("Player 1 reached the circle")
+        p1_speed_boost_timer = speed_boost_duration
+
+    # Check if Player 2 reaches the circle
+    if ((x2 - circle_x)**2 + (y2 - circle_y)**2 <= circle_radius**2) and circleActive == True:
+        circleActive = False
+        print("Player 2 reached the circle")
+        p2_speed_boost_timer = speed_boost_duration
+
+    # Update player speed if they have a speed boost
+    if p1_speed_boost_timer > 0:
+        p1speed *= 2  # Double the speed
+        p1_speed_boost_timer -= 1/fps
+
+    if p2_speed_boost_timer > 0:
+        p2speed *= 2  # Double the speed
+        p2_speed_boost_timer -= 1/fps
+
+    # Update the display
+    # pygame.display.update()
     pygame.display.update()
     timer -= 1/fps
 #Player 2 Win condition
@@ -179,6 +224,7 @@ while not game_over:
         p1sizey = 30
         ability = False
         shrinking = False
+        circleActive = True
         p1abilitytimer = 0
 #Player 1 Win condition
     if (x1 + p1sizex > x2) and (x1 - p2sizex < x2) and (y1 + p1sizey > y2) and (y1 - p2sizey < y2):
@@ -196,6 +242,7 @@ while not game_over:
         p1sizey = 30
         ability = False
         shrinking = False
+        circleActive = True
 
 #Updates player scores
 
