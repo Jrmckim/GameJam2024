@@ -225,6 +225,7 @@ while not game_over:
     timer -= 1/fps
 #Player 2 Win condition
     if timer < 0:
+        mixer.music.pause()
         sleep(1)
         p2score += 1
         p2ability = 1
@@ -243,6 +244,7 @@ while not game_over:
         p1abilitytimer = 0
 #Player 1 Win condition
     if (x1 + p1sizex > x2) and (x1 - p2sizex < x2) and (y1 + p1sizey > y2) and (y1 - p2sizey < y2):
+        mixer.music.pause()
         sleep(1)
         x1 = getrandx(p1sizex)
         y1 = getrandy(p1sizey)
@@ -263,6 +265,7 @@ while not game_over:
 #Updates player scores
 
     if p1score == 5:
+        mixer.music.pause()
         dis.fill(black)
         message("PLAYER 1 WINS", red, disx / 3, disy / 2.5)
         message(f"P1 : {p1score}", red, 10, 10)
@@ -271,6 +274,7 @@ while not game_over:
         sleep(2)
         game_over = True
     if p2score == 5:
+        mixer.music.pause()
         dis.fill(black)
         message("PLAYER 2 WINS", blue, disx // 3, disy // 2.5)
         pygame.display.update()
