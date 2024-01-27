@@ -1,12 +1,21 @@
 import pygame
+from pygame import mixer
 from time import sleep
 import random
 
+mixer.init()
 pygame.init()
+
+
 dis = pygame.display.set_mode((800, 600))
 pygame.display.update()
 pygame.display.set_caption("Tag")
 game_over = False
+
+#Music
+mixer.music.load("10_Second_round.mp3")
+mixer.music.set_volume(0.2)
+mixer.music.play()
 
 # colours
 blue = (0, 0, 255)
@@ -55,7 +64,7 @@ y2 = getrandy(p2sizey)
 circleActive = True
 
 clock = pygame.time.Clock()
-timer = 20
+timer = 10
 font = pygame.font.Font('freesansbold.ttf', 32)
 
 def check_x(x,psizex):
@@ -221,6 +230,7 @@ while not game_over:
         p2ability = 1
         p1ability = 1
         timer = 10
+        mixer.music.play()
         x1 = getrandx(p1sizex)
         y1 = getrandy(p1sizey)
         x2 = getrandx(p2sizex)
@@ -240,6 +250,7 @@ while not game_over:
         y2 = getrandy(p2sizey)
         p1score += 1
         timer = 10
+        mixer.music.play()
         p1ability = 1
         p2ability = 1
         p1abilitytimer = 0
