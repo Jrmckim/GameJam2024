@@ -113,8 +113,60 @@ def home_screen():
         screen.blit(text, text_rect)
         pygame.display.flip()
 
+
+def character_select():
+    screen = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Tag - Character Select")
+
+    player1_ability = "None"
+    player2_ability = "None"
+
+    while player1_ability == "None" or player2_ability == "None":
+
+        text = font.render("Character Select (s to continue)", True, white)
+        text_rect = text.get_rect(center=(400, 100))
+
+        instructions_1 = font.render("Player 1: Press '1' for Get Large ability", True, white)
+        instructions_1_rect = instructions_1.get_rect(center=(400, 200))
+
+        instructions_2 = font.render("Player 2: Press '2' for Teleport ability", True, white)
+        instructions_2_rect = instructions_2.get_rect(center=(400, 300))
+
+        Player_1_ability_displayed = font.render("Player 1 Ability: " + player1_ability, True, white)
+        Player_1_ability_displayed_rect = Player_1_ability_displayed.get_rect(center=(400, 400))
+
+        Player_2_ability_displayed = font.render("Player 2 Ability: " + player2_ability, True, white)
+        Player_2_ability_displayed_rect = Player_2_ability_displayed.get_rect(center=(400, 500))
+
+        screen.fill(black)
+        screen.blit(text, text_rect)
+        screen.blit(instructions_1, instructions_1_rect)
+        screen.blit(instructions_2, instructions_2_rect)
+        screen.blit(Player_1_ability_displayed, Player_1_ability_displayed_rect)
+        screen.blit(Player_2_ability_displayed, Player_2_ability_displayed_rect)
+
+        pygame.display.flip()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    player1_ability = "Get Large"
+                elif event.key == pygame.K_2:
+                    player1_ability = "Teleport"
+                elif event.key == pygame.K_3:
+                    player2_ability = "Get Large"
+                elif event.key == pygame.K_4:
+                    player2_ability = "Teleport"
+
+    return player1_ability, player2_ability
+
 # Run the home screen
 home_screen()
+
+# Run the character select screen
+player1_ability, player2_ability = character_select()
 
 mixer.music.play()
 
