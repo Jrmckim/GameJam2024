@@ -1,7 +1,9 @@
+import numpy as np
 import pygame
 from pygame import mixer
 from time import sleep
 import random
+import math
 
 mixer.init()
 pygame.init()
@@ -18,6 +20,7 @@ mixer.music.set_volume(0.2)
 
 
 # colours
+barrier_color = (255, 121, 11) 
 blue = (0, 0, 255)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -36,15 +39,78 @@ def getrandx(sizex):
 def getrandy(sizey):
     return (random.randint(0,disy-sizey))
 
-def getValidRand_X(sizex, opponent_x=0):
+def procedural_map_generation():
+        # Define the barriers
+    # Define the size of the grid cells
+    cell_size = 20  # Adjust this value as needed
+    # Define the size of the grid
+    grid_width = disx // cell_size
+    grid_height = disy // cell_size
+    # Initialize the grid with random values (0 = floor, 1 = wall)
+    cells = np.random.choice([0, 1], size=(grid_height, grid_width), p=[0.7, 0.3])
+    # Define the update function
+    def update(cells):
+        temp = np.zeros((cells.shape[0], cells.shape[1]))
+        for row, col in np.ndindex(cells.shape):
+            walls = np.sum(cells[max(0, row - 1):min(row + 2, grid_height), max(0, col - 1):min(col + 2, grid_width)]) - cells[row, col]
+            if walls > 3:  # Lowered threshold
+                temp[row, col] = 1
+        return temp
+    # Apply the update function multiple times to generate the final map
+    for _ in range(5):
+        cells = update(cells)
+
+    # Create the barriers
+    barriers = []
+    for row, col in np.ndindex(cells.shape):
+        if cells[row, col] == 1:
+            x = col * cell_size
+            y = row * cell_size
+            width = cell_size
+            height = cell_size
+            barriers.append({'x': x, 'y': y, 'width': width, 'height': height})
+    return barriers
+
+barriers = procedural_map_generation()
+
+def is_inside_any_barrier(x, y, sizex, sizey, barriers):
+    for barrier in barriers:
+        if (x + sizex > barrier['x'] and x < barrier['x'] + barrier['width']) and (y + sizey > barrier['y'] and y < barrier['y'] + barrier['height']):
+            return True
+    return False
+
+
+def check_x(x,y, sizex, sizey,ability:bool = False):
+    if (x + sizex > disx):
+        return False
+    if (x < 0):
+        return False
+    if ability:
+        for barrier in barriers:
+            if pygame.Rect(x, y, sizex, sizey).colliderect(pygame.Rect(barrier['x'], barrier['y'], barrier['width'], barrier['height'])):
+                return False
+    return True
+
+def check_y(x,y, sizex, sizey, ability:bool = False):
+    if (y + sizey > disy):
+        return False
+    if (y < 50):
+        return False
+    if ability:
+        for barrier in barriers:
+            if pygame.Rect(x, y, sizex, sizey).colliderect(pygame.Rect(barrier['x'], barrier['y'], barrier['width'], barrier['height'])):
+                return False
+    return True
+
+def getValidRand_X(sizex, sizey, opponent_x=0, opponent_y=0):  # Added sizey and opponent_y parameters
     randX = getrandx(sizex)
-    while (randX + sizex > disx) or (randX < 0) or (randX < 50) or (abs(randX - opponent_x) < 100):
+    while (randX + sizex > disx) or (randX < 0) or (randX < 50) or (abs(randX - opponent_x) < 100) or is_inside_any_barrier(randX, opponent_y, sizex, sizey, barriers):
         randX = getrandx(sizex)
     return randX
 
-def getValidRand_Y(sizey, opponent_y=0):
+def getValidRand_Y(sizey, sizex, opponent_y=0, opponent_x=0):  # Added sizex and opponent_x parameters
     randY = getrandy(sizey)
-    while (randY + sizey > disy) or (randY < 50) or (abs(randY - opponent_y) < 100):
+    while (randY + sizey > disy) or (randY < 50) or (abs(randY - opponent_y) < 100) or is_inside_any_barrier(opponent_x, randY, sizex, sizey, barriers):
         randY = getrandy(sizey)
     return randY
 
@@ -58,8 +124,8 @@ p1abilitytimer = 0
 p1abilitymaxsizex = 70
 p1abilitymaxsizey = 70
 growth = 4
-x1 = getValidRand_X(p1sizex)
-y1 = getValidRand_Y(p1sizey)
+x1 = getValidRand_X(p1sizex, p1sizey)
+y1 = getValidRand_Y(p1sizey, p1sizey)
 ability = False
 shrinking = False
 p1Heat = 0
@@ -71,9 +137,18 @@ p2speed_temp = 7
 p2score = 0
 p2jump = 1
 p2ability = 1
-x2 = getValidRand_X(p1sizex, x1)
-y2 = getValidRand_Y(p1sizey, y1)
+x2 = getValidRand_X(p2sizex, p2sizey, x1, y1)
+y2 = getValidRand_Y(p2sizey, p2sizey, y1,x1)
 p2Heat = 0
+
+while check_x(x1, y1, p1sizex, p1sizey) == False:
+    x1 = getValidRand_X(p1sizex, p1sizey)
+while check_y(x1, y1, p1sizex, p1sizey) == False:
+    y1 = getValidRand_Y(p1sizey, p1sizey)
+while check_x(x2, y2, p2sizex, p2sizey) == False:
+    x2 = getValidRand_X(p2sizex, p2sizey, x1, y1)
+while check_y(x2, y2, p2sizex, p2sizey) == False:
+    y2 = getValidRand_Y(p2sizey, p2sizey, y1,x1)
 
 circleActive = True
 overheatDelay = 0
@@ -81,20 +156,6 @@ overheatDelay = 0
 clock = pygame.time.Clock()
 timer = 10
 font = pygame.font.Font('freesansbold.ttf', 32)
-
-def check_x(x,psizex):
-    if (x + psizex > disx):
-        x = disx - psizex
-    if (x < 0):
-        x = 0
-    return x
-
-def check_y(y,psizey):
-    if (y + psizey > disy):
-        y = disy - psizey
-    if (y < 0):
-        y = 0
-    return y
 
 def message (msg,colour,x,y):
     mesg = font.render(msg, True, colour)
@@ -127,7 +188,6 @@ def home_screen():
         screen.fill(black)
         screen.blit(text, text_rect)
         pygame.display.flip()
-
 
 def character_select():
     screen = pygame.display.set_mode((800, 600))
@@ -187,6 +247,7 @@ mixer.music.play()
 
 while not game_over:
     # p2speed = 8
+    
     # Closes window if you press the X button
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -205,48 +266,41 @@ while not game_over:
         p1abilitytimer = 2
         p1ability -= 1
 # Player 1 movement
-    if keys[pygame.K_LEFT]:
-        x1 += -p1speed
-        if keys[pygame.K_DOWN] or keys[pygame.K_UP]:
-            x1 += 0.414 * p1speed
-        x1 = check_x(x1, p1sizex)
-    if keys[pygame.K_RIGHT]:
-        x1 += p1speed
-        if keys[pygame.K_DOWN] or keys[pygame.K_UP]:
-            x1 += 0.414 * -p1speed
-        x1 = check_x(x1, p1sizex)
-    if keys[pygame.K_UP]:
-        y1 += -p1speed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]:
-            y1 += 0.414 * p1speed
-        y1 = check_y(y1, p1sizey)
-    if keys[pygame.K_DOWN]:
-        y1 += p2speed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]:
-            y1 += 0.414 * -p1speed
-        y1 = check_y(y1, p1sizey)
-
-#PLAYER 2 Movement
-    if keys[pygame.K_a]:
-        x2 += -p2speed
-        if keys[pygame.K_s] or keys[pygame.K_w]:
-            x2 += 0.414 * p2speed
-        x2 = check_x(x2, p2sizex)
-    if keys[pygame.K_d]:
-        x2 += p2speed
-        if keys[pygame.K_s] or keys[pygame.K_w]:
-            x2 += 0.414 * -p2speed
-        x2 = check_x(x2, p2sizex)
     if keys[pygame.K_w]:
-        y2 += -p2speed
-        if keys[pygame.K_d] or keys[pygame.K_a]:
-            y2 += 0.414 * p2speed
-        y2 = check_y(y2, p2sizey)
+        new_y1 = y1 - p1speed
+        if check_y(x1, new_y1, p1sizex, p1sizey,p1ability):
+            y1 = new_y1
     if keys[pygame.K_s]:
-        y2 += p2speed
-        if keys[pygame.K_d] or keys[pygame.K_a]:
-            y2 += 0.414 * -p2speed
-        y2 = check_y(y2, p2sizey)
+        new_y1 = y1 + p1speed
+        if check_y(x1, new_y1, p1sizex, p1sizey,p1ability):
+            y1 = new_y1
+    if keys[pygame.K_a]:
+        new_x1 = x1 - p1speed
+        if check_x(new_x1, y1, p1sizex, p1sizey,p1ability):
+            x1 = new_x1
+    if keys[pygame.K_d]:
+        new_x1 = x1 + p1speed
+        if check_x(new_x1, y1, p1sizex, p1sizey,p1ability):
+            x1 = new_x1
+
+    # Player 2 movement
+    if keys[pygame.K_UP]:
+        new_y2 = y2 - p2speed
+        if check_y(x2, new_y2, p2sizex, p2sizey,p1ability):
+            y2 = new_y2
+    if keys[pygame.K_DOWN]:
+        new_y2 = y2 + p2speed
+        if check_y(x2, new_y2, p2sizex, p2sizey,p1ability):
+            y2 = new_y2
+    if keys[pygame.K_LEFT]:
+        new_x2 = x2 - p2speed
+        if check_x(new_x2, y2, p2sizex, p2sizey,p1ability):
+            x2 = new_x2
+    if keys[pygame.K_RIGHT]:
+        new_x2 = x2 + p2speed
+        if check_x(new_x2, y2, p2sizex, p2sizey,p1ability):
+            x2 = new_x2
+
 
 #PLAYER 1 ABILITY
     if p1sizex <= p1abilitymaxsizex and p1sizey <= p1abilitymaxsizey and ability == True:
@@ -282,6 +336,10 @@ while not game_over:
     # Draw Player 1 and Player 2
     pygame.draw.rect(dis, blue, [x2, y2, p2sizex, p2sizey])
     pygame.draw.rect(dis, red, [x1, y1, p1sizex, p1sizey])
+    for barrier in barriers:
+        print(barrier)
+        pygame.draw.rect(dis, barrier_color, [barrier['x'], barrier['y'], barrier['width'], barrier['height']])
+
 
     # Define progress bar properties
     bar_width = 200
@@ -380,6 +438,7 @@ while not game_over:
         p1speed = 8.5
         p2speed = 7
         p2speed_temp = 7
+        barriers = procedural_map_generation()
 #Player 1 Win condition
     if (x1 + p1sizex > x2) and (x1 - p2sizex < x2) and (y1 + p1sizey > y2) and (y1 - p2sizey < y2):
         mixer.music.pause()
@@ -402,6 +461,7 @@ while not game_over:
         p1speed = 8.5
         p2speed_temp = 7
         p2speed = 7
+        barriers = procedural_map_generation()
 
 #Updates player scores
 
