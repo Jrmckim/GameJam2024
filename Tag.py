@@ -41,7 +41,7 @@ def getrandy(sizey):
     return (random.randint(0,disy-sizey))
 
 def procedural_map_generation():
-        # Define the barriers
+    # Define the barriers
     # Define the size of the grid cells
     cell_size = 20  # Adjust this value as needed
     # Define the size of the grid
@@ -69,7 +69,10 @@ def procedural_map_generation():
             y = row * cell_size
             width = cell_size
             height = cell_size
-            barriers.append({'x': x, 'y': y, 'width': width, 'height': height})
+            # Check if the barrier is at the central powerup's location
+            if not (grid_width // 2 * cell_size <= x < (grid_width // 2 + 1) * cell_size and
+                    grid_height // 2 * cell_size <= y < (grid_height // 2 + 1) * cell_size):
+                barriers.append({'x': x, 'y': y, 'width': width, 'height': height})
     return barriers
 
 barriers = procedural_map_generation()
@@ -110,7 +113,7 @@ def getValidRand_X(sizex, sizey, opponent_x=0, opponent_y=0):
         randX = getrandx(sizex)
         randY = getrandy(sizey) 
     if not check_x(randX,randY,sizex, sizey) or not check_y(randX,randY,sizex, sizey) or randY < 250:
-        return getValidRand_X()# Generate a new y-coordinate if the previous one was inside a barrier
+        return getValidRand_X(sizex, sizey, opponent_x, opponent_y)# Generate a new y-coordinate if the previous one was inside a barrier
     return randX, randY  # Return both x and y coordinates
 
 def getValidRand_Y(sizey, sizex, opponent_y=0, opponent_x=0):  
@@ -120,7 +123,7 @@ def getValidRand_Y(sizey, sizex, opponent_y=0, opponent_x=0):
         randY = getrandy(sizey)
         randX = getrandx(sizex)  
     if not check_x(randX,randY,sizex, sizey) or not check_y(randX,randY,sizex, sizey) or randY < 250:
-        return getValidRand_X()# Generate a new x-coordinate if the previous one was inside a barrier
+        return getValidRand_X(sizex, sizey, opponent_x, opponent_y)# Generate a new x-coordinate if the previous one was inside a barrier
     return randX, randY  # Return both x and y coordinates
 
 p1sizex = 30
