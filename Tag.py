@@ -50,6 +50,7 @@ x1 = getrandx(p1sizex)
 y1 = getrandy(p1sizey)
 ability = False
 shrinking = False
+p1Heat = 0
 
 p2sizex = 30
 p2sizey = 30
@@ -60,8 +61,10 @@ p2jump = 1
 p2ability = 1
 x2 = getrandx(p2sizex)
 y2 = getrandy(p2sizey)
+p2Heat = 0
 
 circleActive = True
+overheatDelay = 0
 
 clock = pygame.time.Clock()
 timer = 10
@@ -268,6 +271,39 @@ while not game_over:
     pygame.draw.rect(dis, blue, [x2, y2, p2sizex, p2sizey])
     pygame.draw.rect(dis, red, [x1, y1, p1sizex, p1sizey])
 
+    # Define progress bar properties
+    bar_width = 200
+    bar_height = 15
+    bar_y = 50
+    bar_background_color = (255, 255, 255)  # White
+    border_width = bar_width + 3  # Add 4 pixels to the width
+    border_height = bar_height + 3  # Add 4 pixels to the height
+    border_color = (252, 235, 120)  
+    
+    # player1
+    bar_color1 = (220, 20, 60) if p1Heat>2 else  (255, 127, 80) if p1Heat>1 else (255, 226, 6)
+    bar_x1 = 10
+    progress1 = p1Heat/3  
+    border_x1 = bar_x1 - 2  # Subtract 2 pixels from the x position
+    border_y1 = bar_y - 2  # Subtract 2 pixels from the y position
+
+    # player2
+    bar_color2 = (220, 20, 60) if p2Heat>2 else  (255, 127, 80) if p2Heat>1 else (255, 226, 6)
+    bar_x2 = disx-210
+    progress2 = p2Heat/3 
+    border_x2 = bar_x2 - 2  # Subtract 2 pixels from the x position
+    border_y = bar_y - 2  # Subtract 2 pixels from the y position
+
+    # Draw bar11
+    pygame.draw.rect(dis, border_color, [border_x1, border_y, border_width, border_height])
+    pygame.draw.rect(dis, bar_background_color, [bar_x1, bar_y, bar_width, bar_height])
+    pygame.draw.rect(dis, bar_color1, [bar_x1, bar_y, bar_width * progress1, bar_height])
+
+    # Draw bar2
+    pygame.draw.rect(dis, border_color, [border_x2, border_y, border_width, border_height])
+    pygame.draw.rect(dis, bar_background_color, [bar_x2, bar_y, bar_width, bar_height])
+    pygame.draw.rect(dis, bar_color2, [bar_x2, bar_y, bar_width * progress2, bar_height])
+
     # Define circle properties
     circle_radius = 20
     circle_x = disx // 2
@@ -287,12 +323,14 @@ while not game_over:
         circleActive = False
         print("Player 1 reached the circle")
         p1_speed_boost_timer = speed_boost_duration
+        p1Heat += 1
 
     # Check if Player 2 reaches the circle
     if ((x2 - circle_x)**2 + (y2 - circle_y)**2 <= circle_radius**2) and circleActive == True:
         circleActive = False
         print("Player 2 reached the circle")
         p2_speed_boost_timer = speed_boost_duration
+        p2Heat += 1
 
     # Update player speed if they have a speed boost
     if p1_speed_boost_timer > 0:
@@ -355,8 +393,11 @@ while not game_over:
 
 #Updates player scores
 
-    if p1score == 5:
+    if p1score == 5 or p2Heat == 3:
         mixer.music.pause()
+        if p2Heat == 3 and overheatDelay <1:
+            overheatDelay += 1/fps
+            continue
         dis.fill(black)
         message("PLAYER 1 WINS", red, disx / 3, disy / 2.5)
         message(f"P1 : {p1score}", red, 10, 10)
@@ -364,8 +405,11 @@ while not game_over:
         pygame.display.update()
         sleep(2)
         game_over = True
-    if p2score == 5:
+    if p2score == 5 or p1Heat == 3:
         mixer.music.pause()
+        if p1Heat == 3 and overheatDelay <1:
+            overheatDelay += 1/fps
+            continue
         dis.fill(black)
         message("PLAYER 2 WINS", blue, disx // 3, disy // 2.5)
         pygame.display.update()
