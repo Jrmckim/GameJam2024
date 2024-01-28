@@ -36,6 +36,18 @@ def getrandx(sizex):
 def getrandy(sizey):
     return (random.randint(0,disy-sizey))
 
+def getValidRand_X(sizex, opponent_x=0):
+    randX = getrandx(sizex)
+    while (randX + sizex > disx) or (randX < 0) or (randX < 50) or (abs(randX - opponent_x) < 100):
+        randX = getrandx(sizex)
+    return randX
+
+def getValidRand_Y(sizey, opponent_y=0):
+    randY = getrandy(sizey)
+    while (randY + sizey > disy) or (randY < 50) or (abs(randY - opponent_y) < 100):
+        randY = getrandy(sizey)
+    return randY
+
 p1sizex = 30
 p1sizey = 30
 p1speed = 8.5
@@ -46,8 +58,8 @@ p1abilitytimer = 0
 p1abilitymaxsizex = 70
 p1abilitymaxsizey = 70
 growth = 4
-x1 = getrandx(p1sizex)
-y1 = getrandy(p1sizey)
+x1 = getValidRand_X(p1sizex)
+y1 = getValidRand_Y(p1sizey)
 ability = False
 shrinking = False
 p1Heat = 0
@@ -59,8 +71,8 @@ p2speed_temp = 7
 p2score = 0
 p2jump = 1
 p2ability = 1
-x2 = getrandx(p2sizex)
-y2 = getrandy(p2sizey)
+x2 = getValidRand_X(p1sizex, x1)
+y2 = getValidRand_Y(p1sizey, y1)
 p2Heat = 0
 
 circleActive = True
