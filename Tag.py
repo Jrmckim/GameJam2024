@@ -16,6 +16,7 @@ game_over = False
 
 #Music
 mixer.music.load("10_Second_round.mp3")
+lava_texture = pygame.image.load('lava.gif')
 mixer.music.set_volume(0.2)
 
 
@@ -102,17 +103,25 @@ def check_y(x,y, sizex, sizey, ability:bool = False):
                 return False
     return True
 
-def getValidRand_X(sizex, sizey, opponent_x=0, opponent_y=0):  # Added sizey and opponent_y parameters
+def getValidRand_X(sizex, sizey, opponent_x=0, opponent_y=0):  
     randX = getrandx(sizex)
-    while (randX + sizex > disx) or (randX < 0) or (randX < 50) or (abs(randX - opponent_x) < 100) or is_inside_any_barrier(randX, opponent_y, sizex, sizey, barriers):
+    randY = getrandy(sizey)  # Generate a random y-coordinate
+    while (randX + sizex > disx) or (randX < 0) or (randX < 50) or (abs(randX - opponent_x) < 150) or is_inside_any_barrier(randX, randY, sizex, sizey, barriers):
         randX = getrandx(sizex)
-    return randX
+        randY = getrandy(sizey) 
+    if not check_x(randX,randY,sizex, sizey) or not check_y(randX,randY,sizex, sizey) or randY < 250:
+        return getValidRand_X()# Generate a new y-coordinate if the previous one was inside a barrier
+    return randX, randY  # Return both x and y coordinates
 
-def getValidRand_Y(sizey, sizex, opponent_y=0, opponent_x=0):  # Added sizex and opponent_x parameters
+def getValidRand_Y(sizey, sizex, opponent_y=0, opponent_x=0):  
     randY = getrandy(sizey)
-    while (randY + sizey > disy) or (randY < 50) or (abs(randY - opponent_y) < 100) or is_inside_any_barrier(opponent_x, randY, sizex, sizey, barriers):
+    randX = getrandx(sizex)  # Generate a random x-coordinate
+    while (randY + sizey > disy) or (randY < 100) or (abs(randY - opponent_y) < 150) or is_inside_any_barrier(randX, randY, sizex, sizey, barriers):
         randY = getrandy(sizey)
-    return randY
+        randX = getrandx(sizex)  
+    if not check_x(randX,randY,sizex, sizey) or not check_y(randX,randY,sizex, sizey) or randY < 250:
+        return getValidRand_X()# Generate a new x-coordinate if the previous one was inside a barrier
+    return randX, randY  # Return both x and y coordinates
 
 p1sizex = 30
 p1sizey = 30
@@ -124,8 +133,7 @@ p1abilitytimer = 0
 p1abilitymaxsizex = 70
 p1abilitymaxsizey = 70
 growth = 4
-x1 = getValidRand_X(p1sizex, p1sizey)
-y1 = getValidRand_Y(p1sizey, p1sizey)
+x1, y1 = getValidRand_X(p1sizex, p1sizey)
 ability = False
 shrinking = False
 p1Heat = 0
@@ -137,18 +145,8 @@ p2speed_temp = 7
 p2score = 0
 p2jump = 1
 p2ability = 1
-x2 = getValidRand_X(p2sizex, p2sizey, x1, y1)
-y2 = getValidRand_Y(p2sizey, p2sizey, y1,x1)
+x2, y2 = getValidRand_X(p1sizex, p1sizey,x1,y1)
 p2Heat = 0
-
-while check_x(x1, y1, p1sizex, p1sizey) == False:
-    x1 = getValidRand_X(p1sizex, p1sizey)
-while check_y(x1, y1, p1sizex, p1sizey) == False:
-    y1 = getValidRand_Y(p1sizey, p1sizey)
-while check_x(x2, y2, p2sizex, p2sizey) == False:
-    x2 = getValidRand_X(p2sizex, p2sizey, x1, y1)
-while check_y(x2, y2, p2sizex, p2sizey) == False:
-    y2 = getValidRand_Y(p2sizey, p2sizey, y1,x1)
 
 circleActive = True
 overheatDelay = 0
@@ -244,10 +242,21 @@ home_screen()
 player1_ability, player2_ability = character_select()
 
 mixer.music.play()
+while check_x(x1, y1, p1sizex, p1sizey, p1ability) == False:
+    print("spawan error")
+    x1,y1 = getValidRand_X(p1sizex, p1sizey,x2,y2)
+while check_y(x1, y1, p1sizex, p1sizey,p1ability) == False:
+    print("spawan error")
+    x1,y1 = getValidRand_X(p1sizex, p1sizey,x2,y2)
+while check_x(x2, y2, p2sizex, p2sizey, p2ability) == False:
+    print("spawan error")
+    x2,y2 = getValidRand_X(p1sizex, p1sizey,x1,y1)
+while check_y(x2, y2, p2sizex, p2sizey, p2ability) == False:
+    print("spawan error")
+    x2,y2 = getValidRand_X(p1sizex, p1sizey,x1,y1)
 
 while not game_over:
     # p2speed = 8
-    
     # Closes window if you press the X button
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -336,8 +345,12 @@ while not game_over:
     # Draw Player 1 and Player 2
     pygame.draw.rect(dis, blue, [x2, y2, p2sizex, p2sizey])
     pygame.draw.rect(dis, red, [x1, y1, p1sizex, p1sizey])
+    
     for barrier in barriers:
-        print(barrier)
+        # print(barrier)
+        scaled_lava_texture = pygame.transform.scale(lava_texture, (barrier['width'], barrier['height']))
+        # Draw the scaled lava texture onto the barrier
+        # dis.blit(scaled_lava_texture, (barrier['x'], barrier['y']))
         pygame.draw.rect(dis, barrier_color, [barrier['x'], barrier['y'], barrier['width'], barrier['height']])
 
 
